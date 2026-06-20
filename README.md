@@ -13,7 +13,7 @@ I was in a long slump of increasing my velocity in my high school varsity baseba
 While analyzing the video behind the catcher, my program often gave results that my hip shoulder seperation was over 80 degreees which is impossible for a human being to have. This was because my program captured the person who appears to be the biggest as the pitcher, setting the catcher as the pitcher. 
 **Solve**: I added a logic to automatically set up the smallest appearing person as the pithcer. This worked since the pitcher is always further from the camera than the cather is. 
 
-## 2. Erros from measuring static stance for an actual pitching motion
+## 2. Errors from measuring static stance for an actual pitching motion
 While measuring the stride length, my program kept picking a frame where I was just standing still with my legs spread apart. This means my right hand(throwing hand) was not even in an extended position. This happened because my code originally scanned the entire video and found the frame with the largest ankle to ankle distance. 
 **Solve**: I added a logic to only consider the frames if the throwing hand is positioned higher than the throwing shoulder. This makes sense since over handed pitcher like me have the longest stride length when my right hand is positioned higher than my right shoulder. By filtering this, frames where my left hand is positioned lower than my right shoulder are excluded before the program measures the maximum stride or seperation angle. 
 
