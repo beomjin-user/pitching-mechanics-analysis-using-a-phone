@@ -15,6 +15,7 @@ While analyzing the video behind the catcher, my program often gave results that
 
 ## 2. Errors from measuring static stance for an actual pitching motion
 While measuring the stride length, my program kept picking a frame where I was just standing still with my legs spread apart. This means my right hand(throwing hand) was not even in an extended position. This happened because my code originally scanned the entire video and found the frame with the largest ankle to ankle distance. 
+
 **Solve**: I added a logic to only consider the frames if the throwing hand is positioned higher than the throwing shoulder. This makes sense since over handed pitcher like me have the longest stride length when my right hand is positioned higher than my right shoulder. By filtering this, frames where my left hand is positioned lower than my right shoulder are excluded before the program measures the maximum stride or seperation angle. 
 
 **Problem**: This logic will only work with over handed pitcher. Submarine pitchers or three quarter pitchers who sets their hand lower than the shoulder in full stride length will not be able to generate their stride length or seperation angle. 
