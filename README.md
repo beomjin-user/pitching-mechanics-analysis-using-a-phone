@@ -5,7 +5,7 @@ This can automatically measure **Hip Shoulder Separation, Stride Length, Release
 
 ## Why did I made this program?
 
-I was in a long slump of increasing my velocity in my high school varsity baseball team. I researched the primary factor that divides amatuer pitcher and an elite pitcher throwing 90+ miles. It was all about utitlizing ur body's **kinetic chain** efficiently. The intricator to measure the efficiency of the kinetic chain was measuring hip shoulder separation, stride length, and release extension length. This can be completed in numerous ways such as comparing each videos, using motion capture suits, or multiple slow motion cameras in different angle. Since these approaches are impossible in a high school baseball field, I attempted to create a program that can conveniently measure all three elements just with a smartphone. 
+I was in a long slump of increasing my velocity in my high school varsity baseball team. I researched the primary factor that divides amatuer pitcher and an elite pitcher throwing 90+ miles. It was all about utitlizing your body's **kinetic chain** efficiently. The intricator to measure the efficiency of the kinetic chain was measuring hip shoulder separation, stride length, and release extension length. This can be completed in numerous ways such as comparing each videos, using motion capture suits, or multiple slow motion cameras in different angle. Since these approaches are impossible in a high school baseball field, I attempted to create a program that can conveniently measure all three elements just with a smartphone. 
 
 ## Errors/Trials
 
