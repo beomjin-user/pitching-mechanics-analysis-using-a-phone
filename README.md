@@ -22,3 +22,10 @@ While measuring the stride length, my program kept picking a frame where I was j
 **Problem**: This logic will only work with over handed pitcher. Submarine pitchers or three quarter pitchers who sets their hand lower than the shoulder in full stride length will not be able to generate their stride length or seperation angle. 
 
 **Goal for this problem**: I am planning to fix this problem when my program measures my stride length, hip seperation angle, and release extension length perfectly. 
+
+## 3. Wrong camera angle for calculating hip-shoulder seperation angle
+
+When I attempted to measure the hip shoulder seperation angle from the video behind the catcher, my program measured the angle as low as 4 degrees. This was a huge error since I can visually see the angle having more than at least 10 degrees. 
+This was due to the camera angle itself, not the problem with the code. When the rotation axis is parallel to the camera's line of sight, the actual three dimensional rotation gets compressed into very little apparent left-right movement on a two dimensinal video. 
+
+**Solve**: I realized how it is hard to accurately measure the hip shoulder seperatin angle from behind the cathcer. I edited the program to measure the angle from the video from the side(3d base side). This turned out to work well for measuring the hip shoulder seperation angle. 
