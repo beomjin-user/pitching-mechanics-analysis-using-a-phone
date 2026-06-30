@@ -78,25 +78,8 @@ Data collection is ongoing. As of this writing, **30+ pitches are planned for ca
 
 **Analysis plan:** Once a sufficient number of trials are collected, I plan to run a correlation/regression analysis between each kinematic variable and measured velocity, to test Hypotheses 1–2 quantitatively rather than just qualitatively.
 
-## 7. How to Run the Code
 
-```bash
-# 1. Clone this repository
-git clone https://github.com/your-username/repo-name.git
-
-# 2. Install dependencies
-pip install mediapipe opencv-python numpy pandas matplotlib
-
-# 3. Download the MediaPipe pose model
-curl -O https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/latest/pose_landmarker_heavy.task
-
-# 4. Place a side-angle (90°) pitching video in the same folder, then run:
-python pitch_summary_v2.py
-```
-
-The script automatically detects video files in the folder and lets you select which one to analyze. Results (including phase-timeline and verification overlay images) are saved to `results/<video name>/`.
-
-## 8. Limitations & Next Steps
+## 7. Limitations & Next Steps
 
 * **Single-pitch basis:** Each video currently yields one set of measurements; averaging across multiple pitches per session would reduce the effect of any single noisy measurement.
 * **2D monocular limitation:** A single camera cannot fully capture depth, which can affect angle precision compared to a multi-camera or marker-based system.
