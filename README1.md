@@ -22,7 +22,7 @@ A core part of this project was not just building the measurement pipeline, but 
 
 ## 3. Experimental Setup & Methodology
 
-Video was collected using a single smartphone camera positioned at a **90° side angle** relative to the pitching direction (3rd-base or 1st-base side). This angle was chosen deliberately after testing — see Section 5 for why front/rear angles distort the measurement.
+Video was collected using two smartphones camera positioned at a **90° side angle** relative to the pitching direction (3rd-base and 1st-base side). This angle was chosen deliberately after testing — see Section 5 for why front/rear angles distort the measurement.
 
 * **Hardware Stack:**
   * Camera: iPhone, slow-motion mode (60–240fps depending on device)
