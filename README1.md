@@ -1,3 +1,4 @@
+
 # ⚾ Biomechanical Pitching Mechanism Analysis Using Computer Vision
 
 > **Author:** [Braylon] ([St. Mark's School], Class of 2027)
@@ -22,13 +23,15 @@ A core part of this project was not just building the measurement pipeline, but 
 
 ## 3. Experimental Setup & Methodology
 
-Video was collected using a single smartphone camera positioned at a **90° side angle** relative to the pitching direction (3rd-base or 1st-base side). This angle was chosen deliberately after testing — see Section 5 for why front/rear angles distort the measurement.
+Video was collected using two smartphones camera positioned at a **90° side angle** relative to the pitching direction (3rd-base and 1st-base side). This angle was chosen deliberately after testing — see Section 5 for why front/rear angles distort the measurement.
 
 * **Hardware Stack:**
   * Camera: iPhone, slow-motion mode (60–240fps depending on device)
   * Velocity Tracker: Radar gun (measures the dependent variable — output velocity in mph)
 * **Software Stack:** Python 3.10, OpenCV, MediaPipe PoseLandmarker, Pandas, NumPy, Matplotlib
 * **Calibration:** Pixel-to-metric scale is derived from the pitcher's known height (rather than an assumed shoulder-width constant), using the nose-to-ankle pixel distance as a reference. Release Extension is additionally adjusted using wingspan-to-height ratio.
+<img width="2720" height="2040" alt="camera_setup_pitching_analysis_v4" src="https://github.com/user-attachments/assets/52544ad7-465c-48d4-99e4-dddd8fc180db" />
+
 
 ## 4. Kinematic Extraction Logic
 
@@ -78,25 +81,8 @@ Data collection is ongoing. As of this writing, **30+ pitches are planned for ca
 
 **Analysis plan:** Once a sufficient number of trials are collected, I plan to run a correlation/regression analysis between each kinematic variable and measured velocity, to test Hypotheses 1–2 quantitatively rather than just qualitatively.
 
-## 7. How to Run the Code
 
-```bash
-# 1. Clone this repository
-git clone https://github.com/your-username/repo-name.git
-
-# 2. Install dependencies
-pip install mediapipe opencv-python numpy pandas matplotlib
-
-# 3. Download the MediaPipe pose model
-curl -O https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/latest/pose_landmarker_heavy.task
-
-# 4. Place a side-angle (90°) pitching video in the same folder, then run:
-python pitch_summary_v2.py
-```
-
-The script automatically detects video files in the folder and lets you select which one to analyze. Results (including phase-timeline and verification overlay images) are saved to `results/<video name>/`.
-
-## 8. Limitations & Next Steps
+## 7. Limitations & Next Steps
 
 * **Single-pitch basis:** Each video currently yields one set of measurements; averaging across multiple pitches per session would reduce the effect of any single noisy measurement.
 * **2D monocular limitation:** A single camera cannot fully capture depth, which can affect angle precision compared to a multi-camera or marker-based system.
