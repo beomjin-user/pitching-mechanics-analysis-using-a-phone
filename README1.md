@@ -30,7 +30,8 @@ Video was collected using two smartphones camera positioned at a **90° side ang
   * Velocity Tracker: Radar gun (measures the dependent variable — output velocity in mph)
 * **Software Stack:** Python 3.10, OpenCV, MediaPipe PoseLandmarker, Pandas, NumPy, Matplotlib
 * **Calibration:** Pixel-to-metric scale is derived from the pitcher's known height (rather than an assumed shoulder-width constant), using the nose-to-ankle pixel distance as a reference. Release Extension is additionally adjusted using wingspan-to-height ratio.
-* <img width="2720" height="1840" alt="camera_setup_pitching_analysis_v3" src="https://github.com/user-attachments/assets/8bf75397-e9f1-48cb-9b68-da5e7a040651" />
+<img width="2720" height="2040" alt="camera_setup_pitching_analysis_v4" src="https://github.com/user-attachments/assets/52544ad7-465c-48d4-99e4-dddd8fc180db" />
+
 
 ## 4. Kinematic Extraction Logic
 
