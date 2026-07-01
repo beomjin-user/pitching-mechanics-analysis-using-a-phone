@@ -1,5 +1,5 @@
 
-# ⚾ Biomechanical Pitching Mechanism Analysis Using Computer Vision
+# Pitching Mechanism Analysis Using a Phone
 
 > **Author:** [Braylon] ([St. Mark's School], Class of 2027)
 > **Topic:** Computer Vision (MediaPipe) based Pitching Kinematics Extraction & Velocity Correlation Study
