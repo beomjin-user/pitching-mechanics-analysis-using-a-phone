@@ -29,3 +29,9 @@ When I attempted to measure the hip shoulder seperation angle from the video beh
 This was due to the camera angle itself, not the problem with the code. When the rotation axis is parallel to the camera's line of sight, the actual three dimensional rotation gets compressed into very little apparent left-right movement on a two dimensinal video. 
 
 **Solve**: I realized how it is hard to accurately measure the hip shoulder seperatin angle from behind the cathcer. I edited the program to measure the angle from the video from the side(3d base side). This turned out to work well for measuring the hip shoulder seperation angle. 
+
+## 4. Used two cameras again
+
+While rotation occurs in three dimensional space, hip shoulder separation angle measured from a single video had limitation due to its approximation. This was because a single camera can only capture a 2d projection of the pitching movement, and any tilt or angle change in camera position compresses the real rotation angle. 
+
+**Solve**: I added a second camera behind the catcher again and built a stero vision pipeline. From running MediaPipe on both videos simultaneously and using audio cross correltation to sync the two feeds, the program now triangulate the three dimension positions of the hip shoulder separation. 
