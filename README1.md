@@ -34,55 +34,56 @@ Video was collected using two smartphones camera positioned at a **90° side ang
 
 ## 4. Kinematic Extraction Logic
 
-The pipeline uses **MediaPipe PoseLandmarker** to extract 33 skeletal landmarks per frame, then runs each video through a **rule-based motion-phase classifier** before measuring anything.
+**MediaPipe PoseLandmarker**, 33 landmarks/frame, from **two synchronized cameras** (side + back view). 3D triangulation before any measurement. Replaces earlier single-camera (2D monocular) version.
 
-### A. Six-Phase Motion Classification
-Rather than searching the entire clip for a maximum value (which turned out to be unreliable — see Section 5), every frame is first labeled into one of six pitching phases based on wrist speed and joint trajectory:
+### A. Stereo Self-Calibration & Sync
 
 ```
-windup → stride → cocking → acceleration → release → follow_through
+audio sync → visual sync check → self-calibration (Essential Matrix) → 3D triangulation
 ```
 
-Each metric below is only measured within the phase where it is physically meaningful.
+- Audio cross-correlation for initial offset, then manual visual check: dashboard shows both cameras at ±3 candidate frame offsets around a known release moment, user picks the one where both views agree (ball in-hand vs. released should match).
+- High audio-sync confidence ≠ frame-perfect. 1-2 frame error biases everything downstream.
+- Relative camera R/T via Essential Matrix (`cv2.USAC_MAGSAC`).
+- Validated with split-half consistency check - **interleaved** (odd/even), not chronological. Chronological split concentrates real motion in one half, starves the other, false-flags good calibrations as unstable.
 
-### B. Hip-Shoulder Separation (Δθ)
-Computed as the angular difference between the shoulder vector (landmarks 11, 12) and the hip vector (landmarks 23, 24), measured **only within frames classified as `release`**, and only when the throwing wrist is positioned above the throwing shoulder (a physical precondition for an actual release motion):
+### B. Hip-Shoulder Separation (3D, Δθ)
 
-$$\theta_{\text{shoulder}} = \tan^{-1}\left(\frac{Y_{11} - Y_{12}}{X_{11} - X_{12}}\right), \quad \theta_{\text{hip}} = \tan^{-1}\left(\frac{Y_{23} - Y_{24}}{X_{23} - X_{24}}\right)$$
-$$\Delta\theta = \theta_{\text{hip}} - \theta_{\text{shoulder}}$$
+- Angle between 3D hip vector (23, 24) and 3D shoulder vector (11, 12), triangulated.
+- Computed every frame, no phase classifier / no gating to a "release" window.
+- Peak selected from a **smoothed** curve - raw argmax vulnerable to single-frame occlusion spikes.
+- True 3D → immune to the single-camera foreshortening problem in 5.3. No optimal camera angle needed.
 
 ### C. Stride Length
-Measured as the ankle-to-ankle distance at the frame where the lead foot lands, identified by a drop in vertical ankle velocity combined with a knee-flexion inflection point immediately after — not simply "the frame with the widest stance," which an earlier version mistakenly used.
+
+Ankle-to-ankle (side camera), at the same frame as release (below) - not a separate foot-plant/knee-flexion detection.
 
 ### D. Release Extension
-Measured as the horizontal distance between the back foot (an approximation of the pitching rubber) and the throwing wrist at the moment the wrist reaches its farthest point toward home plate, scaled using the height-based calibration and adjusted by the wingspan-to-height ratio.
+
+Back foot → throwing wrist, horizontal, at farthest-forward-wrist frame (arm raised above shoulder). Height-calibrated, wingspan-adjusted.
+
+---
 
 ## 5. Errors, Trials, and Validation
 
-This section documents the debugging process, because most of the project's actual difficulty was here, not in writing the initial version of the code.
+1. **Wrong person as pitcher.** Unchanged: smallest/farthest bounding box selected.
+2. **Static stance as pitch.** Wrist-above-shoulder alone still caught glove adjustments, catch-and-reset motions. Fix: require stride+extension present AND min hip-shoulder angular velocity. Fails either → flagged "rough estimate," not dropped.
+3. **Camera angle distorting Δθ.** Solved structurally: 3D triangulation instead of single-camera-angle workaround. No longer angle-dependent.
+4. **Video files lack photo-style focal-length EXIF.** FOV falls back to a default - same default across two different iPhone models → asymmetric calibration error. Still open.
+5. **Chronological split-half looked unstable on good calibrations.** See 4A - fixed via interleaving.
+6. **Peak-HSS frame noise-sensitive.** One occluded-landmark frame could spike and get picked as "the" peak. Fixed with smoothing pre-argmax.
+7. **Overlay videos unplayable in browser.** OpenCV `mp4v` output isn't browser-decodable - showed as blank 0:00 player despite valid file. Fixed: re-encode via `ffmpeg` (H.264/yuv420p).
 
-**1. Wrong person identified as the pitcher.** In footage filmed from behind the catcher, MediaPipe sometimes locked onto the catcher (closer to the camera, larger in frame) instead of the pitcher, producing a "hip-shoulder separation" of 80+ degrees — anatomically impossible.
-→ *Fix:* When multiple people are detected, the smallest (farthest) person in frame is automatically selected as the pitcher.
-
-**2. Static stance misidentified as the pitching motion.** Early versions searched the full clip for the frame with the largest stride distance or rotation angle, which sometimes picked a relaxed standing pose instead of an actual pitch.
-→ *Fix:* Measurements are now restricted to frames where the throwing wrist is above the throwing shoulder — a condition only true during an actual cocking/release motion, not a resting stance.
-
-**3. Camera angle distorted the separation angle.** Footage filmed close to head-on (facing the camera) produced separation angles as low as 4°, even in frames that visually showed full hip-shoulder rotation. This happens because when the rotation axis is nearly parallel to the camera's line of sight, real 3D rotation compresses into very little apparent 2D motion.
-→ *Fix:* Confirmed that a 90° side angle is optimal for all three metrics, since it keeps the rotation axis perpendicular to the camera — and standardized on that camera position going forward.
+---
 
 ## 6. Current Data & Status
 
-Data collection is ongoing. As of this writing, **30+ pitches are planned for capture and analysis** using the validated pipeline above; results will be logged to `pitching_analysis_result.csv` as they're processed.
-
-| Pitch # | Velocity (mph) | Max Hip-Shoulder Separation (°) | Stride Length (m) | Release Extension (m) |
-| :---: | :---: | :---: | :---: | :---: |
-| *Pending* | *Updating...* | *Updating...* | *Updating...* | *Updating...* |
-
-**Analysis plan:** Once a sufficient number of trials are collected, I plan to run a correlation/regression analysis between each kinematic variable and measured velocity, to test Hypotheses 1–2 quantitatively rather than just qualitatively.
-
+Ongoing collection. Per-session output (HSS/stride/extension per pitch, HSS-over-time plot, per-pitch overlay video w/ live joint tracking) generated and reviewed in Streamlit dashboard - no CSV log.
 
 ## 7. Limitations & Next Steps
 
-* **Single-pitch basis:** Each video currently yields one set of measurements; averaging across multiple pitches per session would reduce the effect of any single noisy measurement.
-* **2D monocular limitation:** A single camera cannot fully capture depth, which can affect angle precision compared to a multi-camera or marker-based system.
-* **Velocity correlation pending:** The kinematic pipeline is validated; the statistical analysis connecting it to measured velocity is the next phase of this project.
+- Stride/extension still 2D (side-camera image plane), unlike triangulated HSS.
+- Pitch detection still heuristic (wrist height + rotation speed + stride/ext), not learned.
+- FOV fallback still a single assumed default regardless of phone model - next: read model from metadata, look up true spec.
+- Single-pitch basis, no cross-pitch averaging.
+- No velocity data yet - correlation with measured velocity is next phase.
