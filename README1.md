@@ -2,7 +2,6 @@
 # Smartphone-Based Pitching Biomechanics Analysis Using Computer Vision
 
 > **Author:** [Braylon] ([St. Mark's School], Class of 2027)
-> **Topic:** Computer Vision (MediaPipe) based Pitching Kinematics Extraction & Velocity Correlation Study
 > **Contact:** [braylonkim@stmarksschool.org] 
 
 ---
