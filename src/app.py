@@ -136,6 +136,45 @@ st.markdown("""
   /* hide default streamlit elements */
   #MainMenu, footer, header { visibility: hidden; }
   .block-container { padding-top: 1.5rem; }
+
+  /* native widget contrast fixes - these weren't covered by the custom
+     classes above, so they were inheriting near-invisible light-on-light
+     text against Streamlit's default light widget backgrounds */
+  .stButton > button {
+    color: #e6edf3 !important;
+    background: #21262d !important;
+    border: 1px solid #30363d !important;
+  }
+  .stButton > button:hover {
+    border-color: #58a6ff !important;
+    color: #58a6ff !important;
+  }
+  .stButton > button:disabled {
+    color: #6e7681 !important;
+    background: #161b22 !important;
+    border-color: #21262d !important;
+  }
+  [data-testid="stExpander"] {
+    background: #161b22 !important;
+    border: 1px solid #30363d !important;
+    border-radius: 8px;
+  }
+  [data-testid="stExpander"] summary,
+  [data-testid="stExpander"] p,
+  [data-testid="stExpander"] label {
+    color: #e6edf3 !important;
+  }
+  .stNumberInput input, .stTextInput input {
+    background: #0d1117 !important;
+    color: #e6edf3 !important;
+    border: 1px solid #30363d !important;
+  }
+  .stRadio label p, .stSlider label p {
+    color: #e6edf3 !important;
+  }
+  [data-testid="stWidgetLabel"] p {
+    color: #c9d1d9 !important;
+  }
 </style>
 """, unsafe_allow_html=True)
 
@@ -184,6 +223,23 @@ def parse_summary(summary_path):
     return pitches, meta
 
 
+def notify_mac(title, message):
+    """
+    Fires a native macOS notification banner (shows even if Streamlit's tab
+    is in the background / you're on a different site). No-op on any
+    platform other than macOS, and never raises - a notification failing
+    should never break the analysis flow.
+    """
+    try:
+        if sys.platform == "darwin":
+            safe_msg = message.replace('"', "'")
+            safe_title = title.replace('"', "'")
+            script = f'display notification "{safe_msg}" with title "{safe_title}" sound name "Glass"'
+            subprocess.run(["osascript", "-e", script], timeout=5)
+    except Exception:
+        pass
+
+
 def find_latest_result(cam1_stem):
     results_dir = Path("results")
     if not results_dir.exists():
@@ -205,8 +261,8 @@ def find_latest_result(cam1_stem):
 # still in hand on one camera while it's already left the hand on the other,
 # which quietly corrupts every downstream stereo computation.
 
-SYNC_N_EACH_SIDE = 3
-SYNC_TARGET_H = 360
+SYNC_N_EACH_SIDE = 7
+SYNC_TARGET_H = 900
 
 
 def grab_frame(video_path, t_sec, fps):
@@ -252,23 +308,22 @@ def find_release_time_for_sync(cam1_stem):
     return None
 
 
-def build_sync_candidates(cam1_path, cam2_path, approx_t,
+def build_sync_candidates(cam1_path, cam2_path, approx_t, center_offset, step_sec,
                            n_each_side=SYNC_N_EACH_SIDE, target_h=SYNC_TARGET_H):
-    """Returns (candidates, auto_offset, z) where candidates is a list of
-    {"offset": float, "image": RGB numpy array, "is_auto": bool}."""
+    """Returns a list of {"offset": float, "image": RGB numpy array, "is_auto": bool}
+    centered on center_offset, spaced step_sec apart. Pass a huge step_sec (e.g. 1.0s)
+    to coarse-scan when the automatic audio offset is wildly wrong, and a small one
+    (a single video frame) to fine-tune once you're in the right neighborhood."""
+    candidates = []
     cap1 = cv2.VideoCapture(cam1_path)
     fps1 = cap1.get(cv2.CAP_PROP_FPS) or 30.0
     cap1.release()
     cap2 = cv2.VideoCapture(cam2_path)
     fps2 = cap2.get(cv2.CAP_PROP_FPS) or 30.0
     cap2.release()
-    step = 1.0 / fps2
 
-    auto_offset, z = find_offset(cam1_path, cam2_path)
-
-    candidates = []
     for i in range(-n_each_side, n_each_side + 1):
-        cand_offset = auto_offset + i * step
+        cand_offset = center_offset + i * step_sec
         fr1 = grab_frame(cam1_path, approx_t, fps1)
         fr2 = grab_frame(cam2_path, approx_t + cand_offset, fps2)
         if fr1 is None or fr2 is None:
@@ -282,7 +337,7 @@ def build_sync_candidates(cam1_path, cam2_path, approx_t,
             "image": combined_rgb,
             "is_auto": (i == 0),
         })
-    return candidates, auto_offset, z
+    return candidates
 
 
 # ─── sidebar ──────────────────────────────────────────────────────────────────
@@ -352,39 +407,62 @@ if st.button("🔍  동기화 확인 시작 (릴리즈 시점 자동 감지)"):
             "▶ Analyze를 한 번 돌려서 pitches.json을 만든 다음 다시 시도하거나, "
             "아래 '직접 시각 입력'에서 대략적인 릴리즈 시점을 눈대중으로 넣어줘.")
         auto_t = 1.0
+
+    sync_override_path = Path("sync_offset.json")
+    if sync_override_path.exists():
+        prev = json.loads(sync_override_path.read_text())
+        auto_offset = prev["offset_sec"]
+        st.info(f"이전에 확정해둔 offset({auto_offset:+.4f}s)을 그대로 씀 - "
+                f"sync_offset.json 삭제하면 자동 오디오 추정으로 돌아감")
+    else:
+        with st.spinner("오디오 기반 offset 계산 중..."):
+            auto_offset, z = find_offset(cam1_path, cam2_path)
+
+    cap2 = cv2.VideoCapture(cam2_path)
+    fps2 = cap2.get(cv2.CAP_PROP_FPS) or 30.0
+    cap2.release()
     with st.spinner("Building sync candidates..."):
-        candidates, auto_offset, z = build_sync_candidates(cam1_path, cam2_path, auto_t)
+        candidates = build_sync_candidates(cam1_path, cam2_path, auto_t,
+                                            center_offset=auto_offset, step_sec=1.0 / fps2)
     if not candidates:
         st.error("프레임을 못 읽었어 — 영상 파일 자체를 확인해줘.")
     else:
         st.session_state["sync_candidates"] = candidates
         st.session_state["sync_idx"] = len(candidates) // 2  # start at auto offset
         st.session_state["sync_approx_t"] = auto_t
+        st.session_state["sync_auto_offset"] = auto_offset
 
 if st.session_state.get("sync_candidates"):
     candidates = st.session_state["sync_candidates"]
     idx = max(0, min(st.session_state.get("sync_idx", len(candidates) // 2),
                       len(candidates) - 1))
+
+    img_col, ctrl_col = st.columns([2, 1])
+
+    with img_col:
+        st.image(candidates[idx]["image"], use_container_width=True)
+        if len(candidates) > 1:
+            idx = st.slider("후보 스크럽", 0, len(candidates) - 1, value=idx,
+                             label_visibility="collapsed")
+            st.session_state["sync_idx"] = idx
+
     cand = candidates[idx]
 
-    st.image(cand["image"], use_container_width=True)
-    tag = " (auto-detected)" if cand["is_auto"] else ""
-    st.markdown(
-        f"<span style='color:#8b949e'>Candidate {idx + 1}/{len(candidates)}"
-        f" &nbsp;·&nbsp; offset {cand['offset']:+.4f}s{tag}"
-        f" &nbsp;·&nbsp; 기준 시각(자동 감지): {st.session_state['sync_approx_t']:.2f}s</span>",
-        unsafe_allow_html=True)
+    with ctrl_col:
+        tag = " (auto)" if cand["is_auto"] else ""
+        st.markdown(
+            f"<span style='color:#8b949e;font-size:0.85rem'>Candidate {idx + 1}/{len(candidates)}"
+            f"<br>offset {cand['offset']:+.4f}s{tag}"
+            f"<br>기준: {st.session_state['sync_approx_t']:.2f}s</span>",
+            unsafe_allow_html=True)
+        st.write("")
 
-    c_prev, c_next, c_pick = st.columns([1, 1, 2])
-    with c_prev:
         if st.button("◀ 이전", disabled=(idx == 0), use_container_width=True):
             st.session_state["sync_idx"] = idx - 1
             st.rerun()
-    with c_next:
         if st.button("다음 ▶", disabled=(idx == len(candidates) - 1), use_container_width=True):
             st.session_state["sync_idx"] = idx + 1
             st.rerun()
-    with c_pick:
         if st.button("✓  이 프레임이 맞음 — 분석 시작", type="primary", use_container_width=True):
             with open("sync_offset.json", "w") as f:
                 json.dump({
@@ -395,20 +473,38 @@ if st.session_state.get("sync_candidates"):
             st.session_state["auto_run_after_sync"] = True
             st.rerun()
 
-    with st.expander("자동 감지된 순간이 이상해 보이면 - 직접 시각 입력"):
-        manual_t = st.number_input(
-            "기준 시각 (초, cam1 기준)", min_value=0.0,
-            value=float(st.session_state["sync_approx_t"]), step=0.05, format="%.2f")
-        if st.button("이 시각으로 다시 만들기"):
-            with st.spinner("Rebuilding..."):
-                candidates2, _, _ = build_sync_candidates(cam1_path, cam2_path, manual_t)
-            if candidates2:
-                st.session_state["sync_candidates"] = candidates2
-                st.session_state["sync_idx"] = len(candidates2) // 2
-                st.session_state["sync_approx_t"] = manual_t
-                st.rerun()
+        with st.expander("직접 조정"):
+            manual_t = st.number_input(
+                "기준 시각 (초, cam1 기준)", min_value=0.0,
+                value=float(st.session_state["sync_approx_t"]), step=0.05, format="%.2f")
+            manual_center = st.number_input(
+                "중심 offset (초)",
+                value=float(st.session_state.get("sync_auto_offset", 0.0)),
+                step=0.5, format="%.4f")
+            step_choice = st.radio(
+                "후보 간격", ["넓게 (1초)", "중간 (0.1초)", "세밀하게 (프레임)"])
+            if step_choice == "넓게 (1초)":
+                step_sec = 1.0
+            elif step_choice == "중간 (0.1초)":
+                step_sec = 0.1
             else:
-                st.error("프레임을 못 읽었어 — 시각이 두 영상 길이 안에 있는지 확인해줘.")
+                cap2 = cv2.VideoCapture(cam2_path)
+                step_sec = 1.0 / (cap2.get(cv2.CAP_PROP_FPS) or 30.0)
+                cap2.release()
+
+            if st.button("후보 다시 만들기", use_container_width=True):
+                with st.spinner("Rebuilding..."):
+                    candidates2 = build_sync_candidates(cam1_path, cam2_path, manual_t,
+                                                         center_offset=manual_center,
+                                                         step_sec=step_sec)
+                if candidates2:
+                    st.session_state["sync_candidates"] = candidates2
+                    st.session_state["sync_idx"] = len(candidates2) // 2
+                    st.session_state["sync_approx_t"] = manual_t
+                    st.session_state["sync_auto_offset"] = manual_center
+                    st.rerun()
+                else:
+                    st.error("프레임을 못 읽었어 — 시각/offset 확인해줘.")
 
 st.markdown("---")
 
@@ -429,8 +525,8 @@ if run_btn or st.session_state.pop("auto_run_after_sync", False):
         "[1/5]": 0.05,
         "[2/5]": 0.15,
         "[3/5]": 0.30,
-        "[4/5]": 0.80,
-        "[5/5]": 0.95,
+        "[4/5]": 0.70,
+        "[5/5]": 0.85,
     }
 
     with st.spinner("Running analysis…"):
@@ -448,11 +544,35 @@ if run_btn or st.session_state.pop("auto_run_after_sync", False):
                         progress.progress(pct)
         proc.wait()
 
-    progress.progress(1.0)
     if proc.returncode == 0:
-        st.success("Analysis complete!")
+        result_dir = find_latest_result(cam1_stem)
+        if result_dir is not None:
+            logs.append("")
+            logs.append("[6/6] Rendering per-pitch overlay videos (dual-camera)...")
+            log_box.code("\n".join(logs[-30:]), language="")
+            with st.spinner("Rendering per-pitch overlay videos…"):
+                viz_cmd = [sys.executable, "pitch_visualizer.py",
+                           str(result_dir), cam1_path, cam2_path]
+                proc2 = subprocess.Popen(
+                    viz_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                    text=True, bufsize=1,
+                )
+                for line in proc2.stdout:
+                    line = line.rstrip()
+                    if line:
+                        logs.append(line)
+                        log_box.code("\n".join(logs[-30:]), language="")
+                proc2.wait()
+            if proc2.returncode != 0:
+                logs.append("(overlay video rendering failed - analysis results are still valid)")
+                log_box.code("\n".join(logs[-30:]), language="")
+        progress.progress(1.0)
+        st.success("Analysis + overlay videos complete!")
+        notify_mac("Pitch Mechanics Analyzer", f"{cam1_name} 분석 완료 - 결과 확인해줘")
     else:
+        progress.progress(1.0)
         st.error("Analysis failed — see log above.")
+        notify_mac("Pitch Mechanics Analyzer", "분석 실패 - 로그 확인 필요")
 
     time.sleep(0.5)
     st.rerun()
