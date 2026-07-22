@@ -376,15 +376,41 @@ with st.sidebar:
 
 # ─── main area ────────────────────────────────────────────────────────────────
 
+cam1_path = str(Path(folder) / cam1_name)
+cam2_path = str(Path(folder) / cam2_name)
+cam1_stem = Path(cam1_name).stem
+
+# ── require explicit confirmation before showing the rest of the page ──
+# without this, the app immediately shows whatever Sync Check state is
+# left over in the session (possibly for a different video pair) the
+# moment the page loads, before the user has actually confirmed anything
+current_pair = (cam1_name, cam2_name)
+if st.session_state.get("confirmed_pair") != current_pair:
+    st.session_state["videos_confirmed"] = False
+    st.session_state.pop("sync_candidates", None)
+    st.session_state.pop("sync_idx", None)
+
+if not st.session_state.get("videos_confirmed", False):
+    st.markdown("# Pitch Mechanics Analyzer")
+    st.markdown(
+        "<span style='color:#8b949e'>Pick your side-view (cam1) and "
+        "back-view (cam2) videos in the sidebar, then continue.</span>",
+        unsafe_allow_html=True)
+    st.markdown(
+        f"<span style='color:#8b949e;font-size:0.85rem'>"
+        f"cam1 · <code>{cam1_name}</code> &nbsp;|&nbsp; cam2 · <code>{cam2_name}</code>"
+        f"</span>", unsafe_allow_html=True)
+    if st.button("Continue →", type="primary"):
+        st.session_state["videos_confirmed"] = True
+        st.session_state["confirmed_pair"] = current_pair
+        st.rerun()
+    st.stop()
+
 st.markdown("# Pitch Mechanics Analyzer")
 st.markdown(
     f"<span style='color:#8b949e;font-size:0.85rem'>"
     f"cam1 · <code>{cam1_name}</code> &nbsp;|&nbsp; cam2 · <code>{cam2_name}</code>"
     f"</span>", unsafe_allow_html=True)
-
-cam1_path = str(Path(folder) / cam1_name)
-cam2_path = str(Path(folder) / cam2_name)
-cam1_stem = Path(cam1_name).stem
 
 # ── Sync Check ────────────────────────────────────────────────────────────────
 st.markdown("---")
@@ -398,24 +424,24 @@ st.markdown(
     "confirm - or fix - the alignment without hunting for a timestamp."
     "</span>", unsafe_allow_html=True)
 
-if st.button("🔍  동기화 확인 시작 (릴리즈 시점 자동 감지)"):
-    with st.spinner("이전 분석 결과에서 release 시점 가져오는 중..."):
+if st.button("🔍  Start Sync Check (auto-detect release moment)"):
+    with st.spinner("Fetching release moment from previous analysis..."):
         auto_t = find_release_time_for_sync(cam1_stem)
     if auto_t is None:
         st.warning(
-            "이 cam1 영상은 아직 분석된 적이 없어서 release 시점을 가져올 수 없어. "
-            "▶ Analyze를 한 번 돌려서 pitches.json을 만든 다음 다시 시도하거나, "
-            "아래 '직접 시각 입력'에서 대략적인 릴리즈 시점을 눈대중으로 넣어줘.")
+            "This cam1 video hasn't been analyzed yet, so a release moment can't be fetched. "
+            "Run ▶ Analyze once to generate pitches.json and try again, or "
+            "enter a rough release moment by eye under 'Manual adjust' below.")
         auto_t = 1.0
 
     sync_override_path = Path("sync_offset.json")
     if sync_override_path.exists():
         prev = json.loads(sync_override_path.read_text())
         auto_offset = prev["offset_sec"]
-        st.info(f"이전에 확정해둔 offset({auto_offset:+.4f}s)을 그대로 씀 - "
-                f"sync_offset.json 삭제하면 자동 오디오 추정으로 돌아감")
+        st.info(f"Using the previously confirmed offset ({auto_offset:+.4f}s) - "
+                f"delete sync_offset.json to fall back to automatic audio estimation")
     else:
-        with st.spinner("오디오 기반 offset 계산 중..."):
+        with st.spinner("Computing audio-based offset..."):
             auto_offset, z = find_offset(cam1_path, cam2_path)
 
     cap2 = cv2.VideoCapture(cam2_path)
@@ -425,7 +451,7 @@ if st.button("🔍  동기화 확인 시작 (릴리즈 시점 자동 감지)"):
         candidates = build_sync_candidates(cam1_path, cam2_path, auto_t,
                                             center_offset=auto_offset, step_sec=1.0 / fps2)
     if not candidates:
-        st.error("프레임을 못 읽었어 — 영상 파일 자체를 확인해줘.")
+        st.error("Couldn't read frames — check the video files themselves.")
     else:
         st.session_state["sync_candidates"] = candidates
         st.session_state["sync_idx"] = len(candidates) // 2  # start at auto offset
@@ -442,7 +468,7 @@ if st.session_state.get("sync_candidates"):
     with img_col:
         st.image(candidates[idx]["image"], use_container_width=True)
         if len(candidates) > 1:
-            idx = st.slider("후보 스크럽", 0, len(candidates) - 1, value=idx,
+            idx = st.slider("Scrub candidates", 0, len(candidates) - 1, value=idx,
                              label_visibility="collapsed")
             st.session_state["sync_idx"] = idx
 
@@ -453,17 +479,17 @@ if st.session_state.get("sync_candidates"):
         st.markdown(
             f"<span style='color:#8b949e;font-size:0.85rem'>Candidate {idx + 1}/{len(candidates)}"
             f"<br>offset {cand['offset']:+.4f}s{tag}"
-            f"<br>기준: {st.session_state['sync_approx_t']:.2f}s</span>",
+            f"<br>Reference: {st.session_state['sync_approx_t']:.2f}s</span>",
             unsafe_allow_html=True)
         st.write("")
 
-        if st.button("◀ 이전", disabled=(idx == 0), use_container_width=True):
+        if st.button("◀ Prev", disabled=(idx == 0), use_container_width=True):
             st.session_state["sync_idx"] = idx - 1
             st.rerun()
-        if st.button("다음 ▶", disabled=(idx == len(candidates) - 1), use_container_width=True):
+        if st.button("Next ▶", disabled=(idx == len(candidates) - 1), use_container_width=True):
             st.session_state["sync_idx"] = idx + 1
             st.rerun()
-        if st.button("✓  이 프레임이 맞음 — 분석 시작", type="primary", use_container_width=True):
+        if st.button("✓  This frame matches — Start analysis", type="primary", use_container_width=True):
             with open("sync_offset.json", "w") as f:
                 json.dump({
                     "offset_sec": cand["offset"],
@@ -473,26 +499,26 @@ if st.session_state.get("sync_candidates"):
             st.session_state["auto_run_after_sync"] = True
             st.rerun()
 
-        with st.expander("직접 조정"):
+        with st.expander("Manual adjust"):
             manual_t = st.number_input(
-                "기준 시각 (초, cam1 기준)", min_value=0.0,
+                "Reference time (sec, cam1)", min_value=0.0,
                 value=float(st.session_state["sync_approx_t"]), step=0.05, format="%.2f")
             manual_center = st.number_input(
-                "중심 offset (초)",
+                "Center offset (sec)",
                 value=float(st.session_state.get("sync_auto_offset", 0.0)),
                 step=0.5, format="%.4f")
             step_choice = st.radio(
-                "후보 간격", ["넓게 (1초)", "중간 (0.1초)", "세밀하게 (프레임)"])
-            if step_choice == "넓게 (1초)":
+                "Candidate spacing", ["Coarse (1s)", "Medium (0.1s)", "Fine (frame-level)"])
+            if step_choice == "Coarse (1s)":
                 step_sec = 1.0
-            elif step_choice == "중간 (0.1초)":
+            elif step_choice == "Medium (0.1s)":
                 step_sec = 0.1
             else:
                 cap2 = cv2.VideoCapture(cam2_path)
                 step_sec = 1.0 / (cap2.get(cv2.CAP_PROP_FPS) or 30.0)
                 cap2.release()
 
-            if st.button("후보 다시 만들기", use_container_width=True):
+            if st.button("Rebuild candidates", use_container_width=True):
                 with st.spinner("Rebuilding..."):
                     candidates2 = build_sync_candidates(cam1_path, cam2_path, manual_t,
                                                          center_offset=manual_center,
@@ -504,7 +530,7 @@ if st.session_state.get("sync_candidates"):
                     st.session_state["sync_auto_offset"] = manual_center
                     st.rerun()
                 else:
-                    st.error("프레임을 못 읽었어 — 시각/offset 확인해줘.")
+                    st.error("Couldn't read frames — check the time/offset.")
 
 st.markdown("---")
 
@@ -568,11 +594,11 @@ if run_btn or st.session_state.pop("auto_run_after_sync", False):
                 log_box.code("\n".join(logs[-30:]), language="")
         progress.progress(1.0)
         st.success("Analysis + overlay videos complete!")
-        notify_mac("Pitch Mechanics Analyzer", f"{cam1_name} 분석 완료 - 결과 확인해줘")
+        notify_mac("Pitch Mechanics Analyzer", f"{cam1_name} analysis complete - check the results")
     else:
         progress.progress(1.0)
         st.error("Analysis failed — see log above.")
-        notify_mac("Pitch Mechanics Analyzer", "분석 실패 - 로그 확인 필요")
+        notify_mac("Pitch Mechanics Analyzer", "Analysis failed - check the log")
 
     time.sleep(0.5)
     st.rerun()
@@ -683,14 +709,14 @@ with col_rel:
     else:
         st.info("Release frame not available for this pitch.")
 
-# ── 더 보기: 오버레이 영상 ──────────────────────────────────────────────────────
+# ── expand: overlay video ──────────────────────────────────────────────────────
 overlay_path = result_dir / f"P{selected_n}_overlay.mp4"
 
 st.markdown("---")
 st.markdown('<div class="section-label">Overlay Video</div>', unsafe_allow_html=True)
 
 if overlay_path.exists():
-    # 더 보기 토글 버튼
+    # show/hide toggle button
     show_key = f"show_overlay_{selected_n}"
     if show_key not in st.session_state:
         st.session_state[show_key] = False
@@ -698,14 +724,14 @@ if overlay_path.exists():
     col_btn, col_hint = st.columns([1, 4])
     with col_btn:
         if st.button(
-            "▶  더 보기" if not st.session_state[show_key] else "✕  닫기",
+            "▶  Show" if not st.session_state[show_key] else "✕  Hide",
             key=f"btn_overlay_{selected_n}",
         ):
             st.session_state[show_key] = not st.session_state[show_key]
     with col_hint:
         st.markdown(
             "<span style='color:#8b949e;font-size:0.82rem;line-height:2.4'>"
-            "투구 구간 전체를 재생하면서 HSS / Stride / Extension이 실시간으로 표시됩니다."
+            "Plays the full pitch segment with HSS / Stride / Extension shown live."
             "</span>", unsafe_allow_html=True)
 
     if st.session_state[show_key]:
@@ -719,8 +745,8 @@ if overlay_path.exists():
 else:
     st.markdown(
         "<span style='color:#8b949e;font-size:0.82rem'>"
-        "오버레이 영상이 없습니다. "
-        "<code>pitch_visualizer.py</code>로 먼저 분석을 실행하세요."
+        "No overlay video yet. "
+        "Run <code>pitch_visualizer.py</code> first."
         "</span>", unsafe_allow_html=True)
 
 # ── footer ────────────────────────────────────────────────────────────────────

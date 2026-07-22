@@ -22,6 +22,7 @@ Results folder name includes date + time so every run is kept separately
 import sys
 import argparse
 import json
+import shutil
 import cv2
 import numpy as np
 from pathlib import Path
@@ -122,48 +123,64 @@ def arm_raised(lms):
     tw = lms[LM[THROW_WRIST]]; ts = lms[LM[THROW_SHOULDER]]
     return vis(tw) and vis(ts) and tw.y < ts.y
 
-def height_based_scale_from_video(video_path):
-    """Estimate pixel→metre scale from side-view video."""
-    cap = cv2.VideoCapture(video_path)
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    w   = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    h   = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+def find_prior_keypoints(cam1_path, cam2_path, results_root=None):
+    """
+    Look for a previous results/<cam1_stem>_*/ folder whose saved keypoint
+    JSONs were extracted from these EXACT same video files, so
+    --skip-extract can reuse them without re-running MediaPipe (the single
+    most expensive step in the pipeline).
 
-    import mediapipe as mp
-    from mediapipe.tasks import python as mp_python
-    from mediapipe.tasks.python import vision as mp_vision
+    Matched against the "video_path" stored inside each JSON, not just the
+    folder name - a folder name only encodes cam1, and a prior run's cam2
+    could easily have been a different file (as happened when switching
+    between Untitled.mov / IMG_9241_2.mov). Reusing the wrong cam2 json
+    would silently corrupt every downstream number, so this only reuses
+    an exact match.
 
-    opts = mp_vision.PoseLandmarkerOptions(
-        base_options=mp_python.BaseOptions(model_asset_path=MODEL_PATH),
-        running_mode=mp_vision.RunningMode.VIDEO,
-        num_poses=2, min_pose_detection_confidence=0.35,
-        min_pose_presence_confidence=0.35, min_tracking_confidence=0.35,
+    Returns (kp1_path, kp2_path) or None.
+    """
+    results_root = results_root or Path("results")
+    cam1_stem = Path(cam1_path).stem
+    if not results_root.exists():
+        return None
+    candidates = sorted(
+        [d for d in results_root.iterdir() if d.is_dir() and d.name.startswith(cam1_stem)],
+        key=lambda d: d.stat().st_mtime, reverse=True,
     )
+    for d in candidates:
+        kp1, kp2 = d / "keypoints_cam1.json", d / "keypoints_cam2.json"
+        if not (kp1.exists() and kp2.exists()):
+            continue
+        try:
+            v1 = json.loads(kp1.read_text())["video_path"]
+            v2 = json.loads(kp2.read_text())["video_path"]
+        except Exception:
+            continue
+        if v1 == cam1_path and v2 == cam2_path:
+            return kp1, kp2
+    return None
 
+
+def height_based_scale_from_json(frames_json):
+    """
+    Estimate pixel->metre scale from cam1's already-extracted keypoints.
+
+    This replaces an earlier version that re-ran MediaPipe over the ENTIRE
+    cam1 video a second time just to get this one number - since Step 3
+    already extracted nose/ankle positions for every frame, that was a
+    fully redundant full-video inference pass (the single most expensive
+    operation in the whole pipeline, done twice for no reason).
+    """
     heights_px = []
-    with mp_vision.PoseLandmarker.create_from_options(opts) as lmkr:
-        idx = 0
-        while True:
-            ret, frame = cap.read()
-            if not ret: break
-            ts_ms = int(idx * 1000 / fps)
-            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            img = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
-            res = lmkr.detect_for_video(img, ts_ms)
-            if res.pose_landmarks:
-                lms = min(res.pose_landmarks,
-                          key=lambda l: (max(x.x for x in l)-min(x.x for x in l)) *
-                                        (max(x.y for x in l)-min(x.y for x in l)))
-                nose = lms[LM["NOSE"]]; la = lms[LM["L_ANKLE"]]; ra = lms[LM["R_ANKLE"]]
-                if vis(nose) and vis(la) and vis(ra):
-                    ankle_y = (la.y * h + ra.y * h) / 2
-                    heights_px.append(abs(ankle_y - nose.y * h))
-            idx += 1
-    cap.release()
+    for fr in frames_json:
+        lms = fr["landmarks"]
+        nose, la, ra = lms[LM["NOSE"]], lms[LM["L_ANKLE"]], lms[LM["R_ANKLE"]]
+        if nose["visibility"] > 0.4 and la["visibility"] > 0.4 and ra["visibility"] > 0.4:
+            ankle_y = (la["y"] + ra["y"]) / 2
+            heights_px.append(abs(ankle_y - nose["y"]))
     if not heights_px:
-        return 0.45 / 60, w, h
-    return (PLAYER_HEIGHT_M / 1.05) / float(np.median(heights_px)), w, h
+        return 0.45 / 60
+    return (PLAYER_HEIGHT_M / 1.05) / float(np.median(heights_px))
 
 def read_frame_at(video_path, timestamp_sec):
     """Read a single frame from video at the given timestamp."""
@@ -387,9 +404,20 @@ def main():
 
     # ── Step 3: keypoint extraction ──────────────────────────────────────────
     step(3, 5, "Extracting MediaPipe keypoints from both videos...")
-    if args.skip_extract and Path(kp1_path).exists() and Path(kp2_path).exists():
-        print("  --skip-extract: reusing existing JSON files.")
-    else:
+    reused = False
+    if args.skip_extract:
+        prior = find_prior_keypoints(cam1, cam2)
+        if prior is not None:
+            prior_kp1, prior_kp2 = prior
+            shutil.copy(prior_kp1, kp1_path)
+            shutil.copy(prior_kp2, kp2_path)
+            print(f"  --skip-extract: reusing keypoints from {prior_kp1.parent.name}/ "
+                  f"(exact cam1+cam2 match found)")
+            reused = True
+        else:
+            print("  --skip-extract requested but no matching prior extraction "
+                  "found for this exact cam1+cam2 pair - extracting fresh.")
+    if not reused:
         print(f"  cam1 ({cam1}) ...")
         extract(cam1, kp1_path, model_path=MODEL_PATH)
         print(f"  cam2 ({cam2}) ...")
@@ -498,8 +526,9 @@ def main():
 
     # ── Step 5: per-pitch images ─────────────────────────────────────────────
     step(5, 5, "Saving per-pitch images...")
-    # pixel scale from cam1 for stride/extension
-    px_scale, _, _ = height_based_scale_from_video(cam1)
+    # pixel scale from cam1 for stride/extension - reused from Step 3's
+    # extraction instead of running MediaPipe over cam1 a second time
+    px_scale = height_based_scale_from_json(data1["frames"])
     direction = pitching_direction_from_json(data1["frames"])
 
     summary_lines = [
