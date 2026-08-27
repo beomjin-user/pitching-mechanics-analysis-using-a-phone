@@ -60,9 +60,6 @@ Velocity correlation analysis is still in progress.
 The system currently outputs per-pitch measurements, time-series plots of hip-shoulder separation, and tracked overlay videos through a Streamlit dashboard.
 
 **Still to do:**
-- Pair kinematic data with radar velocity for correlation analysis
-- Improve pitch detection beyond current heuristics
-- Make field-of-view calibration phone-model specific
-- Extend 3D triangulation to stride length and release extension
+- fix errors for credible results to all pitching
 
 ---
