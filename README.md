@@ -66,11 +66,19 @@ The pipeline syncs the two videos (cross-correlating the audio tracks, then lett
 ### Hip-Shoulder Separation
 Computed as the angular difference between the shoulder vector (landmarks 11, 12) and the hip vector (landmarks 23, 24), measured only in frames classified as `release`, and only when the throwing wrist is above the throwing shoulder.
 
+<img width="311" height="470" alt="Screenshot 2026-08-28 at 7 21 59 PM" src="https://github.com/user-attachments/assets/5d555243-1f20-4d12-9207-212cf41ce0c5" />
+
 ### Stride Length
 Ankle-to-ankle distance at the moment the lead foot lands, identified by a drop in vertical ankle velocity combined with a knee-flexion inflection point.
 
+
+<img width="312" height="470" alt="Screenshot 2026-08-28 at 7 22 10 PM" src="https://github.com/user-attachments/assets/aadd0560-cbcb-497a-964d-b8e7bc492695" />
+
 ### Release Extension
 Horizontal distance between the back foot (approximating the pitching rubber) and the throwing wrist at the moment the wrist reaches its farthest point toward home plate.
+
+
+<img width="310" height="470" alt="Screenshot 2026-08-28 at 7 21 51 PM" src="https://github.com/user-attachments/assets/d7f23e2f-faef-4496-bde2-9c229743ebba" />
 
 ## Calibration
 
