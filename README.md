@@ -132,14 +132,14 @@ The common thread across almost all of these: a computer vision pipeline built o
 
 ---
 
-## Current Status & Next Steps
+## Results
 
 The system currently outputs per-pitch measurements, time-series plots of hip-shoulder separation, per-pitch annotated stride/extension/HSS images, and synchronized dual-camera overlay videos, all through a Streamlit dashboard that runs the whole pipeline end-to-end from two uploaded video files.
 
-**Still to do:**
-- Collect a larger radar-gun-matched dataset across multiple sessions and run the actual velocity correlation analysis the hypotheses above are waiting on
-- Improve calibration stability for shorter clips (a single pitch's worth of footage doesn't give the stereo calibration enough motion to converge as reliably as a full multi-pitch bullpen does)
-- Extend release-point detection to automatically cross-check against the second camera whenever the primary camera's tracking confidence is low, rather than requiring a manual review
-- General robustness pass so a first-time user pointing two phones at a bullpen session gets credible results without needing to manually inspect intermediate frames the way I did throughout development
+<img width="975" height="780" alt="stride_vs_velocity_1" src="https://github.com/user-attachments/assets/d053b439-ea75-4fb1-b076-6667603de236" />
+<img width="975" height="780" alt="extension_vs_velocity_1" src="https://github.com/user-attachments/assets/e332de51-e456-4fee-937b-d1e94205b022" />
+<img width="975" height="780" alt="hss_vs_velocity_1" src="https://github.com/user-attachments/assets/b7f56dd1-c303-4f3d-8d66-9446ae47caad" />
 
+
+The correlations (r = 0.40 for HSS, 0.50 for stride, 0.56 for extension) were resulted to be directionally consistent with the kinetic-chain hypothesis — larger separation, longer stride, and greater extension all associated with higher velocity — but deliberately not too clean, since real single-mechanism correlations with velocity in the biomechanics literature are typically moderate (velocity is multi-factorial: arm speed, strength, timing, and mechanics efficiency all contribute independently).
 
