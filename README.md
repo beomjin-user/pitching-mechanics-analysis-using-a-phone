@@ -5,7 +5,8 @@ braylonkim@stmarksschool.org
 
 ---
 
-<img width="480" height="854" alt="all_pitches_overlay" src="https://github.com/user-attachments/assets/7ad1d258-9510-407b-84b0-3093bd4be12c" />
+<img width="540" height="359" alt="P1_overlay" src="https://github.com/user-attachments/assets/f0aa6f36-b8cc-4557-aa3d-9e32cf39e600" />
+
 
 ## Overview
 
