@@ -59,7 +59,8 @@ The pipeline syncs the two videos (cross-correlating the audio tracks, then lett
 7. **Output** — Per-pitch annotated images (skeleton overlay + measurement), a time-series plot of HSS across the whole session, and a synchronized dual-camera overlay video, all generated automatically and served through a Streamlit dashboard.
 
 
-<img width="1218" height="263" alt="Screenshot 2026-08-28 at 7 16 52 PM" src="https://github.com/user-attachments/assets/fadd75d1-b0c9-4a77-8933-ba4087bda4de" />
+
+<img width="1216" height="323" alt="Screenshot 2026-08-28 at 7 18 28 PM" src="https://github.com/user-attachments/assets/d050e4c3-d3e7-48e5-93fb-2a7a404aaa51" />
 
 
 ---
