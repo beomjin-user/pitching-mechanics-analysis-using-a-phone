@@ -92,5 +92,4 @@ The system currently outputs per-pitch measurements, time-series plots of hip-sh
 - Extend release-point detection to automatically cross-check against the second camera whenever the primary camera's tracking confidence is low, rather than requiring a manual review
 - General robustness pass so a first-time user pointing two phones at a bullpen session gets credible results without needing to manually inspect intermediate frames the way I did throughout development
 
-https://github.com/user-attachments/assets/d3482765-904e-435d-9e75-96b53cdf88e5
 
