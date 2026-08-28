@@ -22,6 +22,16 @@ This project is a computer vision pipeline that measures three key indicators of
 The system uses two synchronized phone cameras, Google's MediaPipe pose estimation model, and classical stereo computer vision (Essential Matrix recovery + triangulation) to reconstruct the pitcher's joints in real 3D space — not just as a flat, foreshortened 2D projection — from footage anyone can capture with equipment they already own.
 
 ---
+## Motivation & Hypotheses
+
+Elite pitchers generate higher velocity largely through more efficient use of the kinetic chain — energy transferred sequentially from the ground up through the hips, trunk, shoulder, elbow, and finally the hand, each segment moving faster than the one before it. Two of the clearest, most measurable signatures of this sequencing are how much the hips "lead" the shoulders during rotation, and how far the body travels toward the plate before the ball is released. I hypothesized that, within my own pitches:
+
+1. Larger hip-shoulder separation near front-foot-plant correlates with higher velocity
+2. Greater stride length and release extension (relative to height) also correlate with higher velocity
+
+Velocity correlation analysis is still in progress — I'm collecting radar-gun-matched pitch data across multiple sessions to build a dataset large enough to say something statistically meaningful, rather than drawing a trend line through three data points.
+
+---
 
 ## Experimental Setup
 
@@ -50,16 +60,7 @@ The pipeline syncs the two videos (cross-correlating the audio tracks, then lett
 
 ---
 
-## Motivation & Hypotheses
 
-Elite pitchers generate higher velocity largely through more efficient use of the kinetic chain — energy transferred sequentially from the ground up through the hips, trunk, shoulder, elbow, and finally the hand, each segment moving faster than the one before it. Two of the clearest, most measurable signatures of this sequencing are how much the hips "lead" the shoulders during rotation, and how far the body travels toward the plate before the ball is released. I hypothesized that, within my own pitches:
-
-1. Larger hip-shoulder separation near front-foot-plant correlates with higher velocity
-2. Greater stride length and release extension (relative to height) also correlate with higher velocity
-
-Velocity correlation analysis is still in progress — I'm collecting radar-gun-matched pitch data across multiple sessions to build a dataset large enough to say something statistically meaningful, rather than drawing a trend line through three data points.
-
----
 
 ## Key Technical Challenges Solved
 
