@@ -58,6 +58,9 @@ The pipeline syncs the two videos (cross-correlating the audio tracks, then lett
    ```
    windup → stride → cocking → acceleration → release → follow_through
    ```
+<img width="1216" height="323" alt="Screenshot 2026-08-28 at 7 18 28 PM" src="https://github.com/user-attachments/assets/d050e4c3-d3e7-48e5-93fb-2a7a404aaa51" />
+
+
 
 3. **Metric extraction** — Each metric is measured only within the phase where it is physically meaningful (see below), rather than searching the whole clip for a maximum value.
 
@@ -102,7 +105,6 @@ Video is filmed from a single 90° side angle (3rd-base or 1st-base line), perpe
 
 
 
-<img width="1216" height="323" alt="Screenshot 2026-08-28 at 7 18 28 PM" src="https://github.com/user-attachments/assets/d050e4c3-d3e7-48e5-93fb-2a7a404aaa51" />
 
 
 ---
