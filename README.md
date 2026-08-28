@@ -58,6 +58,10 @@ The pipeline syncs the two videos (cross-correlating the audio tracks, then lett
 6. **Metric extraction** — For each detected pitch, HSS is read at the true front-foot-plant instant (not an arbitrary smoothed window — more on why below), stride length is measured between the back and front ankle at that same plant frame, and extension is measured at the moment the throwing wrist reaches its farthest point toward the plate.
 7. **Output** — Per-pitch annotated images (skeleton overlay + measurement), a time-series plot of HSS across the whole session, and a synchronized dual-camera overlay video, all generated automatically and served through a Streamlit dashboard.
 
+
+<img width="1218" height="263" alt="Screenshot 2026-08-28 at 7 16 52 PM" src="https://github.com/user-attachments/assets/fadd75d1-b0c9-4a77-8933-ba4087bda4de" />
+
+
 ---
 
 
