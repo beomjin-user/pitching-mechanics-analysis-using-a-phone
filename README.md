@@ -1,4 +1,4 @@
-# Smartphone-Based Pitching Biomechanics Analysis
+# Low-Cost 3D Pitching Biomechanics Analysis Using Smartphones
 
 **Braylon** · St. Mark's School, Class of 2027
 braylonkim@stmarksschool.org
