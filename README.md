@@ -75,7 +75,9 @@ The pipeline syncs the two videos (cross-correlating the audio tracks, then lett
 ### Hip-Shoulder Separation
 Computed as the angular difference between the shoulder vector (landmarks 11, 12) and the hip vector (landmarks 23, 24), measured only in frames classified as `release`, and only when the throwing wrist is above the throwing shoulder.
 
-<img width="311" height="470" alt="Screenshot 2026-08-28 at 7 21 59 PM" src="https://github.com/user-attachments/assets/5d555243-1f20-4d12-9207-212cf41ce0c5" />
+<img width="522.5" height="457.5" alt="Screenshot 2026-08-29 at 2 15 49 PM" src="https://github.com/user-attachments/assets/fa08983b-56e8-4946-9372-73d8f4ea48ee" />
+
+
 
 ### Stride Length
 Ankle-to-ankle distance at the moment the lead foot lands, identified by a drop in vertical ankle velocity combined with a knee-flexion inflection point.
