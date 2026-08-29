@@ -37,7 +37,7 @@ Elite pitchers generate higher velocity largely through more efficient use of th
 ## Experimental Setup
 
 - **Cameras:** Two iPhones (slow-motion or regular mode, 30–240 fps), one positioned roughly side-on to the pitcher and one behind/near the catcher, angled apart by as wide a baseline as the field allows
-- **Radar Guns**: pocket radar PR1000
+- **Radar Guns**: Pocket radar PR1000
 - **Software:** Python, OpenCV, MediaPipe PoseLandmarker, Streamlit (for the interactive dashboard)
 - **Calibration:** No checkerboard or reference object needed — the system self-calibrates the stereo pair directly from the pitcher's own tracked motion, then scales the reconstruction using the pitcher's known height (nose-to-ankle) and a standard height-to-wingspan ratio
 - **Ground truth:** Radar gun for velocity, used to validate whether the measured mechanics actually predict pitch speed
