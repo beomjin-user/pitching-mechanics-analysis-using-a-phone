@@ -40,7 +40,7 @@ Elite pitchers generate higher velocity largely through more efficient use of th
 - **Radar Guns**: Pocket radar PR1000
 - **Software:** Python, OpenCV, MediaPipe PoseLandmarker, Streamlit (for the interactive dashboard)
 - **Calibration:** No checkerboard or reference object needed — the system self-calibrates the stereo pair directly from the pitcher's own tracked motion, then scales the reconstruction using the pitcher's known height (nose-to-ankle) and a standard height-to-wingspan ratio
-- **Ground truth:** Radar gun for velocity, used to validate whether the measured mechanics actually predict pitch speed
+
 
 The pipeline syncs the two videos (cross-correlating the audio tracks, then letting the user nudge cam1 and cam2 independently frame-by-frame to confirm), recovers the relative camera pose via the Essential Matrix (`cv2.USAC_MAGSAC`), triangulates 3D joint positions for every matched frame pair, and then computes the three metrics above at the biomechanically correct instant in the delivery.
 
