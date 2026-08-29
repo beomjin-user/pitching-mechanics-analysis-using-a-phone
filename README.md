@@ -30,7 +30,7 @@ Elite pitchers generate higher velocity largely through more efficient use of th
 1. Larger hip-shoulder separation near front-foot-plant correlates with higher velocity
 2. Greater stride length and release extension (relative to height) also correlate with higher velocity
 
-Velocity correlation analysis is still in progress — I'm collecting radar-gun-matched pitch data across multiple sessions to build a dataset large enough to say something statistically meaningful, rather than drawing a trend line through three data points.
+
 
 ---
 
