@@ -65,7 +65,7 @@ The pipeline syncs the two videos (cross-correlating the audio tracks, then lett
 
 
 
-3. **Metric extraction** — Each metric is measured only within the phase where it is physically meaningful (see below), rather than searching the whole clip for a maximum value.
+3. **Metric extraction** — Each metric is measured only within the phase where it is physically meaningful, rather than searching the whole clip for a maximum value.
 
 ## Metrics
 
