@@ -43,10 +43,11 @@ Velocity correlation analysis is still in progress — I'm collecting radar-gun-
 
 The pipeline syncs the two videos (cross-correlating the audio tracks, then letting the user nudge cam1 and cam2 independently frame-by-frame to confirm), recovers the relative camera pose via the Essential Matrix (`cv2.USAC_MAGSAC`), triangulates 3D joint positions for every matched frame pair, and then computes the three metrics above at the biomechanically correct instant in the delivery.
 
-![Camera Setup](https://github.com/user-attachments/assets/52544ad7-465c-48d4-99e4-dddd8fc180db)
+
+
+<img width="600" alt="Camera Setup" src="https://github.com/user-attachments/assets/52544ad7-465c-48d4-99e4-dddd8fc180db" />
 
 *Two-camera side-view setup used for 3D triangulation*
-
 ---
 
 ## Methodology
