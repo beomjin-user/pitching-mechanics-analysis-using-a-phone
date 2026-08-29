@@ -51,6 +51,8 @@ The pipeline syncs the two videos (cross-correlating the audio tracks, then lett
 
 <img width="600" alt="Camera Setup" src="https://github.com/user-attachments/assets/52544ad7-465c-48d4-99e4-dddd8fc180db" />
 
+Video is filmed from 90 degree side angle (3rd-base or 1st-base line), perpendicular to the pitching direction and 0 degree angle right behind the catcher. 
+
 *Two-camera side-view setup used for 3D triangulation*
 ---
 
@@ -95,9 +97,8 @@ Horizontal distance between the back foot (approximating the pitching rubber) an
 
 Pixel-to-metric scale is derived from the pitcher's known height (nose-to-ankle pixel distance), rather than an assumed shoulder-width constant. Release Extension is additionally adjusted using the wingspan-to-height ratio.
 
-## Camera setup
 
-Video is filmed from a single 90° side angle (3rd-base or 1st-base line), perpendicular to the pitching direction. This angle keeps the hip/shoulder rotation axis perpendicular to the camera, minimizing the angular compression that occurs from more frontal angles (see `validation.md` for why this matters).
+
 
 ---
 
