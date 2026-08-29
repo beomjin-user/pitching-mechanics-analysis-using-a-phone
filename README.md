@@ -13,7 +13,7 @@ braylonkim@stmarksschool.org
 
 ## Overview
 
-As a varsity baseball pitcher stuck in a velocity plateau, I wanted objective biomechanical feedback without access to expensive motion-capture systems (Rapsodo, TrackMan, etc.), which typically cost thousands of dollars and aren't practical for a high school athlete to use on a daily basis. Coaches can watch a bullpen session and offer cues, but they can't tell you that your hip-shoulder separation was 15° instead of 30°, or that your stride shrank by 20cm between your first and fifteenth pitch of the day. That kind of precise, repeatable measurement usually requires a lab.
+I've played baseball since I was 10, and I pitch exclusively at the varsity level. For a long stretch, my velocity was stuck around 80 mph and wouldn't move no matter what I changed in my bullpens. Systems like Rapsodo and TrackMan exist to give exactly this kind of objective feedback, but they cost thousands of dollars — out of reach for a high schooler trying to fix his own mechanics session by session. Beyond the cost, I also just wanted to actually know my own numbers: what my hip-shoulder separation, stride, and extension really were, not just a coach's general impression from the mound. Coaches can watch a bullpen session and offer cues, but they can't tell you that your hip-shoulder separation was 15° instead of 30°, or that your stride shrank by 20cm between your first and fifteenth pitch of the day. That kind of precise, repeatable measurement usually requires a lab.
 
 So I built one — out of two phones.
 
