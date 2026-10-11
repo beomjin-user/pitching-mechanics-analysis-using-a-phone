@@ -149,6 +149,14 @@ The system currently outputs per-pitch measurements, time-series plots of hip-sh
 <img width="487.5" height="390" alt="extension_vs_velocity_1" src="https://github.com/user-attachments/assets/e332de51-e456-4fee-937b-d1e94205b022" />
 <img width="487.5" height="390" alt="hss_vs_velocity_1" src="https://github.com/user-attachments/assets/b7f56dd1-c303-4f3d-8d66-9446ae47caad" />
 
+This is a graph from another player
+
+<img width="487.5" height="390" alt="Screenshot 2026-10-11 at 6 13 59 PM" src="https://github.com/user-attachments/assets/a4c51798-3143-40c3-8b7f-28f19dcd0574" />
+<img width="487.5" height="390" alt="Screenshot 2026-10-11 at 6 13 56 PM" src="https://github.com/user-attachments/assets/2511c876-414a-4d82-a913-b1ce3097ff0a" />
+<img width="487.5" height="390" alt="Screenshot 2026-10-11 at 6 13 52 PM" src="https://github.com/user-attachments/assets/bb192ef2-3522-4ede-82b5-237db1a3d8b6" />
+
+
+
 
 The correlations (r = 0.40 for HSS, 0.50 for stride, 0.56 for extension) were resulted to be directionally consistent with the kinetic-chain hypothesis — larger separation, longer stride, and greater extension all associated with higher velocity — but deliberately not too clean, since real single-mechanism correlations with velocity in the biomechanics literature are typically moderate (velocity is multi-factorial: arm speed, strength, timing, and mechanics efficiency all contribute independently).
 
